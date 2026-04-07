@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>OASIS FOOD - Menu 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#f0f0f0;display:flex;justify-content:center;min-height:100vh}
+.app{max-width:430px;width:100%;background:#fff;min-height:100vh;position:relative;box-shadow:0 0 20px rgba(0,0,0,0.1)}
+.header{background:#1a2a4a;padding:16px;color:#fff;position:sticky;top:0;z-index:50}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.logo{font-size:20px;font-weight:700;letter-spacing:1px;color:#e8d5a3}
+.logo-sub{font-size:10px;color:rgba(232,213,163,0.7);letter-spacing:2px;display:block;margin-top:2px}
+.lang-wrap{position:relative}
+.lang-btn{background:#e8d5a3;color:#1a2a4a;border:none;border-radius:20px;padding:7px 13px;font-size:12px;cursor:pointer;font-weight:700}
+.lang-picker{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #ddd;border-radius:12px;overflow:hidden;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,0.15);min-width:140px}
+.lang-picker.show{display:block}
+.lang-opt{display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;cursor:pointer;border:none;background:none;font-size:14px;color:#333}
+.lang-opt:hover{background:#f5f5f5}
+.lang-opt.active{background:#f0f4ff;font-weight:700}
+.search-bar{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);border-radius:22px;padding:9px 14px}
+.search-bar input{border:none;background:none;color:#fff;flex:1;font-size:14px;outline:none}
+.search-bar input::placeholder{color:rgba(255,255,255,0.55)}
+.search-icon{color:rgba(255,255,255,0.7);font-size:15px}
+.cat-scroll{display:flex;gap:8px;padding:12px 14px;overflow-x:auto;border-bottom:1px solid #f0f0f0;background:#fff;position:sticky;top:88px;z-index:40}
+.cat-scroll::-webkit-scrollbar{display:none}
+.cat-btn{flex-shrink:0;padding:8px 14px;border-radius:20px;border:1.5px solid #ddd;font-size:13px;cursor:pointer;background:#fff;color:#666;transition:all 0.15s;white-space:nowrap;font-weight:500}
+.cat-btn.active{background:#1a2a4a;color:#e8d5a3;border-color:#1a2a4a}
+.cat-btn:hover:not(.active){border-color:#1a2a4a;color:#1a2a4a}
+.cart-bar{background:#e8d5a3;padding:11px 16px;display:none;align-items:center;justify-content:space-between;cursor:pointer;position:sticky;top:140px;z-index:39}
+.cart-bar.show{display:flex}
+.cart-bar-text{font-size:13px;font-weight:700;color:#1a2a4a}
+.cart-bar-btn{background:#1a2a4a;color:#e8d5a3;border:none;border-radius:20px;padding:7px 16px;font-size:12px;cursor:pointer;font-weight:700}
+.menu-grid{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:80px}
+.menu-card{background:#fff;border:1px solid #eee;border-radius:14px;overflow:hidden;cursor:pointer;transition:all 0.15s;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.menu-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.12);transform:translateY(-1px)}
+.card-img{width:100%;height:88px;display:flex;align-items:center;justify-content:center;font-size:36px;background:#f8f8f5}
+.card-body{padding:9px}
+.card-code{font-size:10px;color:#bbb;margin-bottom:2px;font-weight:600;letter-spacing:0.5px}
+.card-name{font-size:12px;font-weight:700;color:#222;line-height:1.35;margin-bottom:3px;min-height:32px}
+.card-sub{font-size:10px;color:#999;margin-bottom:6px;line-height:1.3;min-height:24px}
+.card-bottom{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.card-price{font-size:14px;font-weight:700;color:#1a6644}
+.add-btn{background:#1a2a4a;color:#e8d5a3;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700;white-space:nowrap}
+.add-btn:hover{background:#263d6b}
+.add-btn.added{background:#1a6644}
+/* ---- Overlay modals ---- */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.sheet{background:#fff;width:100%;max-width:430px;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto}
+.sheet-handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 16px}
+.sheet-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.sheet-title{font-size:17px;font-weight:700;color:#222;flex:1;margin-right:12px}
+.close-btn{background:none;border:none;font-size:22px;cursor:pointer;color:#999;line-height:1;padding:0}
+/* Detail modal */
+.detail-emoji{font-size:52px;text-align:center;margin-bottom:10px;display:block}
+.detail-sub{font-size:12px;color:#999;text-align:center;margin-bottom:10px;line-height:1.5}
+.detail-desc{font-size:13px;color:#555;margin-bottom:14px;line-height:1.6;background:#f8f8f8;border-radius:10px;padding:10px 12px}
+.detail-price{font-size:26px;font-weight:700;color:#1a6644;margin-bottom:14px;text-align:center}
+.detail-add-btn{width:100%;padding:14px;background:#1a2a4a;color:#e8d5a3;border:none;border-radius:14px;font-size:16px;cursor:pointer;font-weight:700}
+.detail-add-btn:hover{background:#263d6b}
+/* Cart */
+.cart-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #f0f0f0}
+.cart-item-info{flex:1}
+.cart-item-name{font-size:13px;font-weight:600;color:#222}
+.cart-item-price{font-size:12px;color:#888;margin-top:2px}
+.qty-ctrl{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.qty-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid #ddd;background:#fff;cursor:pointer;font-size:16px;color:#333;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700}
+.qty-btn:hover{border-color:#1a2a4a;color:#1a2a4a}
+.qty-num{font-size:14px;font-weight:700;min-width:18px;text-align:center;color:#222}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;padding:16px 0 8px;font-size:17px;font-weight:700;color:#222}
+.order-btn{width:100%;padding:15px;background:#1a6644;color:#fff;border:none;border-radius:14px;font-size:16px;cursor:pointer;font-weight:700;margin-top:4px}
+.order-btn:hover{background:#144d33}
+.empty-cart{text-align:center;padding:36px 20px;color:#aaa;font-size:14px;line-height:1.8}
+/* Confirm */
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center;padding:20px}
+.confirm-overlay.show{display:flex}
+.confirm-box{background:#fff;border-radius:20px;padding:32px 24px;width:100%;max-width:320px;text-align:center}
+.confirm-icon{font-size:52px;margin-bottom:12px;display:block}
+.confirm-title{font-size:20px;font-weight:700;color:#222;margin-bottom:8px}
+.confirm-msg{font-size:14px;color:#777;line-height:1.7;margin-bottom:22px;white-space:pre-line}
+.confirm-close{padding:12px 36px;background:#1a2a4a;color:#e8d5a3;border:none;border-radius:14px;font-size:15px;cursor:pointer;font-weight:700}
+/* QR tab */
+.qr-section{padding:24px 20px;text-align:center;padding-bottom:80px}
+.qr-card{background:#1a2a4a;border-radius:20px;padding:28px;margin-bottom:20px;display:inline-block;width:100%}
+.qr-card canvas{display:block;margin:0 auto;border-radius:10px}
+.qr-title{color:#e8d5a3;font-size:18px;font-weight:700;margin-bottom:4px}
+.qr-sub{color:rgba(232,213,163,0.7);font-size:12px;margin-bottom:20px;letter-spacing:1px}
+.qr-scan{color:rgba(255,255,255,0.8);font-size:13px;margin-top:16px}
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid #eee;display:flex;z-index:100}
+.nav-btn{flex:1;padding:10px 0 12px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:#aaa;font-size:10px;font-weight:600;transition:color 0.15s}
+.nav-btn.active{color:#1a2a4a}
+.nav-btn .nav-icon{font-size:20px}
+.no-result{text-align:center;padding:48px 20px;color:#aaa;font-size:14px;grid-column:1/-1}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="logo">OASIS FOOD</div>
+        <span class="logo-sub">NEW MENU 2026</span>
+      </div>
+      <div class="lang-wrap">
+        <button class="lang-btn" onclick="toggleLang()" id="lang-btn-label">🌐 JA</button>
+        <div class="lang-picker" id="lang-picker">
+          <button class="lang-opt active" onclick="setLang('JA')">🇯🇵 日本語</button>
+          <button class="lang-opt" onclick="setLang('EN')">🇺🇸 English</button>
+          <button class="lang-opt" onclick="setLang('KO')">🇰🇷 한국어</button>
+          <button class="lang-opt" onclick="setLang('ZH')">🇨🇳 中文</button>
+        </div>
+      </div>
+    </div>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="" oninput="renderMenu()">
+    </div>
+  </div>
+
+  <!-- Pages -->
+  <div id="page-menu">
+    <div class="cat-scroll" id="cat-scroll">
+      <button class="cat-btn active" data-cat="all" onclick="selectCat('all',this)"><span data-t="all"></span></button>
+      <button class="cat-btn" data-cat="japanese" onclick="selectCat('japanese',this)">🍱 <span data-t="japanese"></span></button>
+      <button class="cat-btn" data-cat="korean" onclick="selectCat('korean',this)">🥘 <span data-t="korean"></span></button>
+      <button class="cat-btn" data-cat="western" onclick="selectCat('western',this)">🍔 <span data-t="western"></span></button>
+      <button class="cat-btn" data-cat="khmer" onclick="selectCat('khmer',this)">🍲 <span data-t="khmer"></span></button>
+      <button class="cat-btn" data-cat="dessert" onclick="selectCat('dessert',this)">🍨 <span data-t="dessert"></span></button>
+      <button class="cat-btn" data-cat="alacarte" onclick="selectCat('alacarte',this)">🍽 <span data-t="alacarte"></span></button>
+    </div>
+    <div class="cart-bar" id="cart-bar" onclick="openCart()">
+      <span class="cart-bar-text" id="cart-bar-text"></span>
+      <button class="cart-bar-btn" id="cart-bar-btn"></button>
+    </div>
+    <div class="menu-grid" id="menu-grid"></div>
+  </div>
+
+  <div id="page-qr" style="display:none">
+    <div class="qr-section">
+      <div class="qr-card">
+        <div class="qr-title">OASIS FOOD</div>
+        <div class="qr-sub">SCAN TO VIEW MENU</div>
+        <canvas id="qr-canvas" width="200" height="200"></canvas>
+        <div class="qr-scan" id="qr-url-display"></div>
+      </div>
+      <p style="font-size:13px;color:#666;line-height:1.8;margin-bottom:16px" id="qr-desc"></p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <span style="background:#e8d5a3;color:#1a2a4a;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700">🍱 日本食</span>
+        <span style="background:#e8d5a3;color:#1a2a4a;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700">🥘 韓国食</span>
+        <span style="background:#e8d5a3;color:#1a2a4a;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700">🍔 西洋食</span>
+        <span style="background:#e8d5a3;color:#1a2a4a;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700">🍲 クメール</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" id="nav-menu" onclick="showPage('menu')">
+      <span class="nav-icon">🍽</span>
+      <span data-t="navMenu"></span>
+    </button>
+    <button class="nav-btn" id="nav-cart-btn" onclick="openCart()">
+      <span class="nav-icon">🛒</span>
+      <span><span data-t="navCart"></span><span id="cart-badge" style="display:none;background:#c0392b;color:#fff;border-radius:10px;font-size:10px;padding:1px 5px;margin-left:3px"></span></span>
+    </button>
+    <button class="nav-btn" id="nav-qr" onclick="showPage('qr')">
+      <span class="nav-icon">📱</span>
+      <span data-t="navQR"></span>
+    </button>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="overlay" id="detail-overlay" onclick="overlayClose(event,'detail-overlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="d-title"></div>
+      <button class="close-btn" onclick="closeOverlay('detail-overlay')">✕</button>
+    </div>
+    <span class="detail-emoji" id="d-emoji"></span>
+    <div class="detail-sub" id="d-sub"></div>
+    <div class="detail-desc" id="d-desc"></div>
+    <div class="detail-price" id="d-price"></div>
+    <button class="detail-add-btn" id="d-add-btn" onclick="addFromDetail()"></button>
+  </div>
+</div>
+
+<!-- Cart Modal -->
+<div class="overlay" id="cart-overlay" onclick="overlayClose(event,'cart-overlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="cart-title-label"></div>
+      <button class="close-btn" onclick="closeOverlay('cart-overlay')">✕</button>
+    </div>
+    <div id="cart-items-list"></div>
+    <button class="order-btn" id="order-btn" onclick="placeOrder()"></button>
+  </div>
+</div>
+
+<!-- Order Confirm -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <span class="confirm-icon">✅</span>
+    <div class="confirm-title" id="conf-title"></div>
+    <div class="confirm-msg" id="conf-msg"></div>
+    <button class="confirm-close" onclick="closeConfirm()" id="conf-close"></button>
+  </div>
+</div>
+
+<script>
+// ===== TRANSLATIONS =====
+const T={
+  JA:{search:"メニューを検索...",all:"すべて",japanese:"日本食",korean:"韓国食",western:"西洋食",khmer:"クメール",dessert:"デザート",alacarte:"アラカルト",
+    addCart:"カートに追加",viewCart:"カートを見る",cartTitle:"🛒 カート",total:"合計",order:"注文する",
+    orderOk:"ご注文ありがとうございます！",orderMsg:"ご注文を受け付けました。\nまもなくお席にお持ちします🍽",close:"閉じる",
+    cartEmpty:"カートは空です\nメニューから選んでね",cartBarPre:"カート：",cartBarSuf:"品",
+    navMenu:"メニュー",navCart:"カート",navQR:"QRコード",
+    qrDesc:"このQRコードをスキャンすると\nメニューが表示されます",
+    qrScan:"📱 スキャンしてメニューを見る",
+    contains:"含む"},
+  EN:{search:"Search menu...",all:"All",japanese:"Japanese",korean:"Korean",western:"Western",khmer:"Khmer",dessert:"Dessert",alacarte:"À la Carte",
+    addCart:"Add to Cart",viewCart:"View Cart",cartTitle:"🛒 Cart",total:"Total",order:"Place Order",
+    orderOk:"Order Placed!",orderMsg:"Your order has been received.\nWe'll bring it to your table soon 🍽",close:"Close",
+    cartEmpty:"Your cart is empty\nChoose something delicious!",cartBarPre:"Cart: ",cartBarSuf:" items",
+    navMenu:"Menu",navCart:"Cart",navQR:"QR Code",
+    qrDesc:"Scan this QR code to view\nthe full menu on your phone",
+    qrScan:"📱 Scan to view menu",
+    contains:"includes"},
+  KO:{search:"메뉴 검색...",all:"전체",japanese:"일본식",korean:"한국식",western:"양식",khmer:"크메르",dessert:"디저트",alacarte:"단품",
+    addCart:"장바구니 추가",viewCart:"장바구니 보기",cartTitle:"🛒 장바구니",total:"합계",order:"주문하기",
+    orderOk:"주문 완료!",orderMsg:"주문이 접수되었습니다.\n곧 테이블로 가져다 드리겠습니다 🍽",close:"닫기",
+    cartEmpty:"장바구니가 비어 있습니다\n맛있는 메뉴를 골라보세요!",cartBarPre:"장바구니: ",cartBarSuf:"개",
+    navMenu:"메뉴",navCart:"장바구니",navQR:"QR코드",
+    qrDesc:"이 QR코드를 스캔하면\n메뉴를 볼 수 있습니다",
+    qrScan:"📱 스캔하여 메뉴 보기",
+    contains:"포함"},
+  ZH:{search:"搜索菜单...",all:"全部",japanese:"日本料理",korean:"韩国料理",western:"西式料理",khmer:"高棉料理",dessert:"甜点",alacarte:"单品",
+    addCart:"加入购物车",viewCart:"查看购物车",cartTitle:"🛒 购物车",total:"合计",order:"下单",
+    orderOk:"订单已提交！",orderMsg:"您的订单已收到。\n我们很快将为您送到餐桌 🍽",close:"关闭",
+    cartEmpty:"购物车为空\n请从菜单中选择",cartBarPre:"购物车：",cartBarSuf:"件",
+    navMenu:"菜单",navCart:"购物车",navQR:"二维码",
+    qrDesc:"扫描此二维码\n即可在手机上查看菜单",
+    qrScan:"📱 扫码查看菜单",
+    contains:"含"}
+};
+
+// ===== MENU DATA =====
+const MENU=[
+  {id:"A1",cat:"japanese",emoji:"🍳",price:13,
+    name:{JA:"ハンバーグセット",EN:"Hamburg Steak Set",KO:"함박스테이크 세트",ZH:"日式汉堡肉饼套餐"},
+    sub:{JA:"ポン酢 / マッシュルームソース",EN:"Ponzu / Mushroom Sauce",KO:"폰즈 / 머쉬룸 소스",ZH:"柚子醋或蘑菇酱"}},
+  {id:"A2",cat:"japanese",emoji:"🍳",price:10,
+    name:{JA:"オムライスセット",EN:"Omelette Rice Set",KO:"오므라이스 세트",ZH:"日式蛋包饭套餐"},
+    sub:{JA:"みそ汁付き",EN:"with Miso Soup",KO:"된장국 포함",ZH:"附味噌汤"}},
+  {id:"A3",cat:"japanese",emoji:"🍜",price:10,
+    name:{JA:"天ぷらうどん／そば",EN:"Tempura Udon or Soba",KO:"튀김 우동/소바",ZH:"天妇罗乌冬面"},
+    sub:{JA:"温・冷",EN:"Hot or Cold",KO:"따뜻/차가운",ZH:"热/冷"}},
+  {id:"A4",cat:"japanese",emoji:"🍜",price:10,
+    name:{JA:"カレーうどん／そば",EN:"Curry Udon or Soba",KO:"카레 우동/소바",ZH:"咖喱乌冬面"},
+    sub:{JA:"ポーク/ビーフ/チキン/シーフード",EN:"Pork/Beef/Chicken/Seafood",KO:"소/돼지/닭/해산물",ZH:"猪/牛/鸡/海鲜"}},
+  {id:"A5",cat:"japanese",emoji:"🍜",price:8.50,
+    name:{JA:"焼きうどん",EN:"Fried Udon",KO:"야키우동",ZH:"炒乌冬面"},
+    sub:{JA:"みそ汁付き",EN:"with Miso Soup",KO:"미소 된장국 포함",ZH:"附味噌汤"}},
+  {id:"A6",cat:"japanese",emoji:"🍛",price:10,
+    name:{JA:"カレーライス",EN:"Japanese Curry Rice",KO:"일본식 카레라이스",ZH:"日式咖喱饭"},
+    sub:{JA:"みそ汁付き",EN:"with Miso Soup",KO:"된장국 포함",ZH:"附味噌汤"}},
+  {id:"A7",cat:"japanese",emoji:"🍛",price:14,
+    name:{JA:"カツカレー",EN:"Cutlet & Curry",KO:"가츠카레",ZH:"炸排咖喱饭"},
+    sub:{JA:"ポーク/チキン・みそ汁付き",EN:"Pork/Chicken + Miso Soup",KO:"돼지/닭 + 된장국",ZH:"猪/鸡 附味噌汤"}},
+  {id:"A8",cat:"japanese",emoji:"🍱",price:10,
+    name:{JA:"かつセット",EN:"Cutlet Set",KO:"가츠 정식",ZH:"炸排套餐"},
+    sub:{JA:"ポーク/チキン",EN:"Pork or Chicken",KO:"돼지/닭",ZH:"猪排或鸡排"}},
+  {id:"A9",cat:"japanese",emoji:"🍗",price:10,
+    name:{JA:"からあげセット",EN:"Deep-Fried Chicken Set",KO:"가라아게 정식",ZH:"日式炸鸡套餐"},
+    sub:{JA:"みそ汁付き",EN:"with Miso Soup",KO:"된장국 포함",ZH:"附味噌汤"}},
+  {id:"A10",cat:"japanese",emoji:"🥚",price:10,
+    name:{JA:"親子丼",EN:"Chicken & Egg Rice Bowl",KO:"오야코동",ZH:"亲子盖饭"},
+    sub:{JA:"みそ汁付き",EN:"with Miso Soup",KO:"된장국 포함",ZH:"附味噌汤"}},
+  {id:"A11",cat:"japanese",emoji:"🍚",price:10,
+    name:{JA:"カツ丼",EN:"Cutlet Rice Bowl",KO:"가츠동",ZH:"炸排盖饭"},
+    sub:{JA:"ポーク/チキン",EN:"Pork/Chicken",KO:"돼지/닭",ZH:"猪/鸡"}},
+  {id:"A12",cat:"japanese",emoji:"🍚",price:10,
+    name:{JA:"ソース豚かつ丼",EN:"Sauce Pork Cutlet Bowl",KO:"소스 돈가스 덮밥",ZH:"酱汁炸猪排盖饭"},
+    sub:{JA:"みそ汁付き",EN:"with Miso Soup",KO:"된장국 포함",ZH:"附味噌汤"}},
+  {id:"A13",cat:"japanese",emoji:"🥩",price:12,
+    name:{JA:"牛丼",EN:"Beef Rice Bowl",KO:"규동",ZH:"牛肉盖饭"},
+    sub:{JA:"みそ汁付き",EN:"with Miso Soup",KO:"된장국 포함",ZH:"附味噌汤"}},
+  {id:"A14",cat:"japanese",emoji:"🍤",price:10,
+    name:{JA:"天丼",EN:"Tempura Rice Bowl",KO:"튀김 덮밥",ZH:"天妇罗盖饭"},
+    sub:{JA:"みそ汁付き",EN:"with Miso Soup",KO:"된장국 포함",ZH:"附味噌汤"}},
+  {id:"B1",cat:"korean",emoji:"🥣",price:10,
+    name:{JA:"ユッケジャン",EN:"Yuk Gejang",KO:"육개장",ZH:"韩国辣牛肉汤"},
+    sub:{JA:"辛口牛肉スープ",EN:"Spicy Beef Soup",KO:"매운 소고기 국",ZH:"辣牛肉汤"}},
+  {id:"B2",cat:"korean",emoji:"🥘",price:10,
+    name:{JA:"スンドゥブチゲ",EN:"Tofu Jjigae",KO:"순두부찌개",ZH:"韩式豆腐锅"},
+    sub:{JA:"豆腐チゲ",EN:"Soft Tofu Stew",KO:"순두부찌개",ZH:"嫩豆腐汤锅"}},
+  {id:"B3",cat:"korean",emoji:"🥘",price:10,
+    name:{JA:"プデチゲ",EN:"Budae Kimchi Jjigae",KO:"부대 김치찌개",ZH:"部队泡菜锅"},
+    sub:{JA:"部隊チゲ",EN:"Army Stew",KO:"부대찌개",ZH:"部队锅"}},
+  {id:"B4",cat:"korean",emoji:"🥘",price:10,
+    name:{JA:"テンジャンチゲ",EN:"Doenjang Jjigae",KO:"된장찌개",ZH:"韩式大酱汤"},
+    sub:{JA:"韓国味噌チゲ",EN:"Soybean Paste Stew",KO:"된장찌개",ZH:"大酱汤"}},
+  {id:"B5",cat:"korean",emoji:"🍜",price:10,
+    name:{JA:"グルチャンポン",EN:"Spicy Gul Jjamppong",KO:"매운 굴 짬뽕",ZH:"辣牡蛎海鲜面"},
+    sub:{JA:"ピリ辛牡蠣麺",EN:"Spicy Oyster Noodle Soup",KO:"굴짬뽕",ZH:"辣牡蛎面"}},
+  {id:"B6",cat:"korean",emoji:"🍲",price:10,
+    name:{JA:"スンデクッパ",EN:"Sundae Gukbap",KO:"순대국밥",ZH:"韩式猪肠汤"},
+    sub:{JA:"豚腸詰めスープ",EN:"Blood Sausage Soup + Rice",KO:"순대국밥",ZH:"猪肠汤饭"}},
+  {id:"B7",cat:"korean",emoji:"🍲",price:10,
+    name:{JA:"ファンテヘジャンクク",EN:"Hwangtae Haejang Guk",KO:"황태 해장국",ZH:"干鳕鱼汤"},
+    sub:{JA:"干しダラのスープ",EN:"Dried Pollock Soup",KO:"황태 해장국",ZH:"干鳕鱼汤"}},
+  {id:"B8",cat:"korean",emoji:"🥣",price:10,
+    name:{JA:"トックマンドゥグク",EN:"Rice Cake & Mandu Soup",KO:"떡만두국",ZH:"年糕饺子汤"},
+    sub:{JA:"餅餃子スープ",EN:"Rice Cake Dumpling Soup",KO:"떡만두국",ZH:"年糕饺子汤"}},
+  {id:"B9",cat:"korean",emoji:"🍙",price:10,
+    name:{JA:"キムバップ",EN:"Gimbap",KO:"김밥",ZH:"韩式紫菜包饭"},
+    sub:{JA:"韓国のり巻き",EN:"Korean Rice Roll",KO:"김밥",ZH:"紫菜包饭"}},
+  {id:"B10",cat:"korean",emoji:"🍳",price:10,
+    name:{JA:"キムチチャーハン",EN:"Kimchi Fried Rice",KO:"김치볶음밥",ZH:"泡菜炒饭"},
+    sub:{JA:"キムチ炒飯",EN:"Kimchi Fried Rice",KO:"김치볶음밥",ZH:"泡菜炒饭"}},
+  {id:"B11",cat:"korean",emoji:"🍚",price:10,
+    name:{JA:"石焼ビビンバ",EN:"Hot Stone Bibimbap",KO:"돌솥 비빔밥",ZH:"石锅拌饭"},
+    sub:{JA:"石鍋ビビンバ",EN:"Stone Pot Mixed Rice",KO:"돌솥비빔밥",ZH:"石锅拌饭"}},
+  {id:"B12",cat:"korean",emoji:"🐟",price:10,
+    name:{JA:"韓国刺身丼",EN:"Hoe Deopbap",KO:"회덮밥",ZH:"生鱼片饭"},
+    sub:{JA:"刺身丼",EN:"Raw Fish Rice Bowl",KO:"회덮밥",ZH:"生鱼片盖饭"}},
+  {id:"B13",cat:"korean",emoji:"🍜",price:10,
+    name:{JA:"ジャージャー麺",EN:"Zha Jiang Mian",KO:"자장면",ZH:"炸酱面"},
+    sub:{JA:"韓国炸醤麺",EN:"Black Bean Noodle",KO:"자장면",ZH:"韩式炸酱面"}},
+  {id:"B14",cat:"korean",emoji:"🍜",price:10,
+    name:{JA:"冷麺",EN:"Naengmyeon",KO:"냉면",ZH:"韩式冷面"},
+    sub:{JA:"韓国冷麺",EN:"Korean Cold Noodle",KO:"냉면",ZH:"冷面"}},
+  {id:"B15",cat:"korean",emoji:"🍜",price:10,
+    name:{JA:"ビビン麺",EN:"Bibim Kuksu",KO:"비빔국수",ZH:"拌冷面"},
+    sub:{JA:"ビビン麺",EN:"Spicy Mixed Noodle",KO:"비빔국수",ZH:"拌冷面"}},
+  {id:"B16",cat:"korean",emoji:"🍝",price:10,
+    name:{JA:"チャプチェ",EN:"Japchae",KO:"잡채",ZH:"炒粉丝"},
+    sub:{JA:"韓国炒春雨",EN:"Glass Noodle Stir Fry",KO:"잡채",ZH:"韩式炒粉丝"}},
+  {id:"B17",cat:"korean",emoji:"🌶️",price:8,
+    name:{JA:"辛ラーメン＆キムバップセット",EN:"Shin Ramyeon & Gimbap Combo",KO:"신라면&김밥 세트",ZH:"辛拉面&紫菜包饭套餐"},
+    sub:{JA:"コンボセット",EN:"Combo Set",KO:"콤보세트",ZH:"套餐"}},
+  {id:"B18",cat:"korean",emoji:"🍖",price:10,
+    name:{JA:"タンスユク",EN:"Sweet & Sour Pork",KO:"탕수육",ZH:"糖醋肉"},
+    sub:{JA:"韓国風酢豚",EN:"Korean Sweet Sour Pork",KO:"탕수육",ZH:"韩式糖醋肉"}},
+  {id:"B19",cat:"korean",emoji:"🥓",price:15,
+    name:{JA:"サムギョプサル",EN:"Samgyeopsal",KO:"삼겹살",ZH:"五花肉烧烤"},
+    sub:{JA:"韓国式豚バラ焼き",EN:"Korean Grilled Pork Belly",KO:"삼겹살",ZH:"烤五花肉"}},
+  {id:"B20",cat:"korean",emoji:"🥩",price:15,
+    name:{JA:"ポッサム",EN:"Bossam",KO:"보쌈",ZH:"菜包肉"},
+    sub:{JA:"韓国式ゆで豚",EN:"Korean Boiled Pork",KO:"보쌈",ZH:"菜包肉"}},
+  {id:"B21",cat:"korean",emoji:"🌶️",price:15,
+    name:{JA:"ジェユクボックム",EN:"Jeyuk Bokkeum",KO:"제육볶음",ZH:"辣炒猪肉"},
+    sub:{JA:"豚肉ピリ辛炒め",EN:"Spicy Stir-Fried Pork",KO:"매운제육볶음",ZH:"辣炒猪肉"}},
+  {id:"B22",cat:"korean",emoji:"🍗",price:15,
+    name:{JA:"ダッカルビ",EN:"Dakgalbi",KO:"닭갈비",ZH:"辣炒鸡"},
+    sub:{JA:"韓国チキン甘辛炒め",EN:"Korean Spicy Chicken",KO:"닭갈비",ZH:"韩式辣炒鸡"}},
+  {id:"B23",cat:"korean",emoji:"🥩",price:15,
+    name:{JA:"プルコギ",EN:"Bulgogi",KO:"불고기",ZH:"韩式烤牛肉"},
+    sub:{JA:"韓国牛肉甘辛炒め",EN:"Korean BBQ Beef",KO:"불고기",ZH:"烤牛肉"}},
+  {id:"B24",cat:"korean",emoji:"🐟",price:10,
+    name:{JA:"韓国風サバ焼き",EN:"Fried Mackerel",KO:"고등어 구이",ZH:"烤鲭鱼"},
+    sub:{JA:"サバの焼き魚",EN:"Grilled Mackerel",KO:"고등어구이",ZH:"烤青花鱼"}},
+  {id:"B25",cat:"korean",emoji:"🥞",price:10,
+    name:{JA:"海鮮チヂミ",EN:"Korean Seafood Pancake",KO:"해물파전",ZH:"海鲜煎饼"},
+    sub:{JA:"海鮮チヂミ",EN:"Seafood Pancake",KO:"해물파전",ZH:"韩式海鲜煎饼"}},
+  {id:"C1",cat:"western",emoji:"🥗",price:10,
+    name:{JA:"シーザーサラダ",EN:"Caesar Salad",KO:"시저 샐러드",ZH:"凯撒沙拉"},
+    sub:{JA:"チキン/サーモン",EN:"Chicken or Grilled Salmon",KO:"치킨/연어",ZH:"鸡肉/烤三文鱼"}},
+  {id:"C2",cat:"western",emoji:"🍗",price:5,
+    name:{JA:"チキンウィング",EN:"Deep-Fried Chicken Wing",KO:"치킨 윙 튀김",ZH:"炸鸡翅"},
+    sub:{JA:"4pc $5 / 8pc $8",EN:"4pcs $5 / 8pcs $8",KO:"4개 $5 / 8개 $8",ZH:"4只 $5 / 8只 $8"}},
+  {id:"C3",cat:"western",emoji:"🍟",price:5,
+    name:{JA:"フライドポテト",EN:"French Fries",KO:"감자튀김",ZH:"炸薯条"},
+    sub:{JA:"プレーン/ガーリック/スパイシー",EN:"Plain/Garlic/Spicy",KO:"기본/마늘/매운맛",ZH:"原味/蒜蓉/辣"}},
+  {id:"C4",cat:"western",emoji:"🥩",price:28,
+    name:{JA:"リブアイステーキ",EN:"Grilled Ribeye Steak",KO:"립아이 스테이크",ZH:"肋眼牛排"},
+    sub:{JA:"ペッパー/マッシュルーム/オニオンソース",EN:"Pepper/Mushroom/Onion Sauce",KO:"후추/버섯/양파 소스",ZH:"黑胡椒/蘑菇/洋葱酱"}},
+  {id:"C5",cat:"western",emoji:"🐟",price:22,
+    name:{JA:"グリルサーモンステーキ",EN:"Grilled Salmon Steak",KO:"연어 스테이크",ZH:"煎三文鱼排"},
+    sub:{JA:"バターレモンソース",EN:"Butter & Lemon Sauce",KO:"버터 레몬 소스",ZH:"黄油柠檬酱"}},
+  {id:"C6",cat:"western",emoji:"🍝",price:10,
+    name:{JA:"ボロネーゼ",EN:"Spaghetti Bolognese",KO:"스파게티 볼로그네이스",ZH:"肉酱意面"},
+    sub:{JA:"ミートソース",EN:"Meat Sauce Pasta",KO:"미트 소스",ZH:"肉酱"}},
+  {id:"C7",cat:"western",emoji:"🍝",price:10,
+    name:{JA:"ボンゴレ",EN:"Spaghetti Vongole",KO:"스파게티 봉골레",ZH:"蛤蜊意面"},
+    sub:{JA:"アサリパスタ",EN:"Clam Pasta",KO:"봉골레",ZH:"蛤蜊"}},
+  {id:"C8",cat:"western",emoji:"🍝",price:10,
+    name:{JA:"シーフードトマトスパゲティ",EN:"Seafood Tomato Spaghetti",KO:"해산물 토마토 스파게티",ZH:"海鲜番茄意面"},
+    sub:{JA:"シーフード&トマト",EN:"Seafood Tomato",KO:"해산물 토마토",ZH:"海鲜番茄"}},
+  {id:"C9",cat:"western",emoji:"🍝",price:10,
+    name:{JA:"シーフードクリームスパゲティ",EN:"Seafood Cream Spaghetti",KO:"해산물 크림 스파게티",ZH:"海鲜奶油意面"},
+    sub:{JA:"クリームソース",EN:"Cream Sauce",KO:"크림 소스",ZH:"奶油酱"}},
+  {id:"C10",cat:"western",emoji:"🍝",price:10,
+    name:{JA:"カルボナーラ",EN:"Spaghetti Carbonara",KO:"스파게티 카르보나라",ZH:"奶油培根意面"},
+    sub:{JA:"カルボナーラ",EN:"Carbonara",KO:"카르보나라",ZH:"培根奶油"}},
+  {id:"C11",cat:"western",emoji:"🍔",price:10,
+    name:{JA:"ハンバーガー",EN:"Hamburger & Fries",KO:"햄버거 & 감자튀김",ZH:"汉堡附炸薯条"},
+    sub:{JA:"フライドポテト付き",EN:"with French Fries",KO:"감자튀김 포함",ZH:"附炸薯条"}},
+  {id:"C12",cat:"western",emoji:"🍔",price:10,
+    name:{JA:"チーズバーガー（マッシュルーム）",EN:"Cheeseburger Mushroom Sauce",KO:"치즈버거 버섯 소스",ZH:"芝士汉堡蘑菇酱"},
+    sub:{JA:"フライドポテト付き",EN:"with French Fries",KO:"감자튀김 포함",ZH:"附炸薯条"}},
+  {id:"C13",cat:"western",emoji:"🍔",price:10,
+    name:{JA:"チキンバーガー",EN:"Deep-Fried Chicken Burger",KO:"닭고기 버거",ZH:"炸鸡腿汉堡"},
+    sub:{JA:"フライドポテト付き",EN:"with French Fries",KO:"감자튀김 포함",ZH:"附炸薯条"}},
+  {id:"C14",cat:"western",emoji:"🍔",price:12,
+    name:{JA:"チーズバーガー（テリヤキ）",EN:"Cheeseburger Teriyaki",KO:"치즈버거 데리야끼",ZH:"照烧芝士汉堡"},
+    sub:{JA:"フライドポテト付き",EN:"with French Fries",KO:"감자튀김 포함",ZH:"附炸薯条"}},
+  {id:"C15",cat:"western",emoji:"🥪",price:10,
+    name:{JA:"クラブハウスサンドイッチ",EN:"Club House Sandwich & Fries",KO:"클럽하우스 샌드위치",ZH:"总汇三明治"},
+    sub:{JA:"フライドポテト付き",EN:"with French Fries",KO:"감자튀김 포함",ZH:"附炸薯条"}},
+  {id:"C16",cat:"western",emoji:"🥪",price:10,
+    name:{JA:"カツサンド",EN:"Pork Cutlet Sandwich",KO:"돈가스 샌드위치",ZH:"日式炸猪排三明治"},
+    sub:{JA:"カツサンド",EN:"Katsu Sandwich",KO:"돈가스 샌드위치",ZH:"炸猪排三明治"}},
+  {id:"D1",cat:"khmer",emoji:"🥩",price:10,
+    name:{JA:"ロックラック",EN:"Traditional Khmer Beef Lok Lak",KO:"전통 크메르 소고기 록락",ZH:"柬式炒牛肉"},
+    sub:{JA:"カンボジア風牛肉炒め",EN:"Cambodian Stir-Fried Beef",KO:"록락",ZH:"传统柬式炒牛肉"}},
+  {id:"D2",cat:"khmer",emoji:"🍜",price:9,
+    name:{JA:"クイティウ",EN:"Kuy Teav Noodle Soup",KO:"쌀국수",ZH:"柬式米粉汤"},
+    sub:{JA:"ビーフ/ポーク/チキン/シーフード",EN:"Beef/Pork/Chicken/Seafood",KO:"소/돼지/닭/해산물",ZH:"牛/猪/鸡/海鲜"}},
+  {id:"D3",cat:"khmer",emoji:"🍜",price:8,
+    name:{JA:"ミーチャー",EN:"Fried Noodle",KO:"볶음면",ZH:"柬式炒面"},
+    sub:{JA:"ビーフ/ポーク/チキン/シーフード",EN:"Beef/Pork/Chicken/Seafood",KO:"소/돼지/닭/해산물",ZH:"牛/猪/鸡/海鲜"}},
+  {id:"D4",cat:"khmer",emoji:"🍳",price:9,
+    name:{JA:"バイチャー",EN:"Fried Rice",KO:"볶음밥",ZH:"柬式炒饭"},
+    sub:{JA:"ビーフ/ポーク/チキン/シーフード",EN:"Beef/Pork/Chicken/Seafood",KO:"소/돼지/닭/해산물",ZH:"牛/猪/鸡/海鲜"}},
+  {id:"D5",cat:"khmer",emoji:"🥣",price:8,
+    name:{JA:"カンボジア風おかゆ",EN:"Porridge",KO:"죽",ZH:"柬式粥"},
+    sub:{JA:"ビーフ/ポーク/チキン/シーフード",EN:"Beef/Pork/Chicken/Seafood",KO:"소/돼지/닭/해산물",ZH:"牛/猪/鸡/海鲜"}},
+  {id:"E1",cat:"dessert",emoji:"🍓",price:5,
+    name:{JA:"フルーツの盛り合わせ",EN:"Fresh Fruits Platter",KO:"신선한 과일 모듬",ZH:"水果拼盘"},
+    sub:{JA:"季節のフルーツ",EN:"Seasonal Fruits",KO:"계절 과일",ZH:"时令水果"}},
+  {id:"E2",cat:"dessert",emoji:"🍦",price:5,
+    name:{JA:"アイスクリーム",EN:"Ice Cream",KO:"아이스크림",ZH:"冰淇淋"},
+    sub:{JA:"バニラ/チョコ/抹茶",EN:"Vanilla/Chocolate/Green Tea",KO:"바닐라/초콜릿/녹차",ZH:"香草/巧克力/抹茶"}},
+  {id:"F1",cat:"alacarte",emoji:"🥚",price:7,
+    name:{JA:"卵焼き",EN:"Rolled Japanese Omelette",KO:"계란말이",ZH:"日式煎蛋卷"},
+    sub:{JA:"アラカルト",EN:"À la Carte",KO:"단품",ZH:"单品"}},
+  {id:"F2",cat:"alacarte",emoji:"🍢",price:5,
+    name:{JA:"揚げ出し豆腐",EN:"Fried Tofu",KO:"두부튀김",ZH:"炸豆腐"},
+    sub:{JA:"アラカルト",EN:"À la Carte",KO:"단품",ZH:"单品"}},
+  {id:"F3",cat:"alacarte",emoji:"🍗",price:8,
+    name:{JA:"からあげ",EN:"Japanese Deep-Fried Chicken",KO:"가라아게",ZH:"日式炸鸡"},
+    sub:{JA:"アラカルト",EN:"À la Carte",KO:"단품",ZH:"单品"}},
+  {id:"F4",cat:"alacarte",emoji:"🐚",price:8,
+    name:{JA:"バイ貝の煮つけ",EN:"Simmered Sea Snails",KO:"조림 고둥",ZH:"日式煮白贝"},
+    sub:{JA:"アラカルト",EN:"À la Carte",KO:"단품",ZH:"单品"}},
+  {id:"F5",cat:"alacarte",emoji:"🥩",price:7.5,
+    name:{JA:"生姜焼き",EN:"Japanese Ginger Pork Stir-Fry",KO:"쇼가야키",ZH:"生姜炒肉"},
+    sub:{JA:"アラカルト",EN:"À la Carte",KO:"단품",ZH:"单品"}},
+  {id:"F6",cat:"alacarte",emoji:"🥩",price:12,
+    name:{JA:"牛煮込み",EN:"Japanese Braised Beef",KO:"소고기 조림",ZH:"炖牛肉"},
+    sub:{JA:"アラカルト",EN:"À la Carte",KO:"단품",ZH:"单品"}},
+  {id:"F7",cat:"alacarte",emoji:"🍤",price:7.5,
+    name:{JA:"エビの天ぷら 5尾",EN:"Shrimp Tempura (5pcs)",KO:"새우 덴푸라 5마리",ZH:"天妇罗虾5只"},
+    sub:{JA:"アラカルト",EN:"À la Carte",KO:"단품",ZH:"单品"}},
+  {id:"F8",cat:"alacarte",emoji:"🍤",price:10,
+    name:{JA:"天ぷらの盛り合わせ",EN:"Assorted Tempura",KO:"덴푸라 모둠",ZH:"天妇罗拼盘"},
+    sub:{JA:"アラカルト",EN:"À la Carte",KO:"단품",ZH:"单品"}},
+  {id:"F9",cat:"alacarte",emoji:"🐍",price:17,
+    name:{JA:"鰻丼",EN:"Eel Rice Bowl",KO:"장어 덮밥",ZH:"鳗鱼饭"},
+    sub:{JA:"みそ汁付き",EN:"with Miso Soup",KO:"된장국 포함",ZH:"配味噌汤"}},
+  {id:"F10",cat:"alacarte",emoji:"🍣",price:12,
+    name:{JA:"サーモンロール",EN:"Salmon Roll",KO:"연어 롤",ZH:"三文鱼卷"},
+    sub:{JA:"寿司ロール",EN:"Sushi Roll",KO:"연어롤",ZH:"寿司卷"}},
+  {id:"F11",cat:"alacarte",emoji:"🍣",price:17,
+    name:{JA:"炙りサーモンロール",EN:"Aburi Salmon Roll",KO:"아부리 연어 롤",ZH:"炙烤三文鱼卷"},
+    sub:{JA:"炙りサーモン",EN:"Torched Salmon Roll",KO:"아부리롤",ZH:"炙烤卷"}},
+  {id:"F12",cat:"alacarte",emoji:"🍣",price:17,
+    name:{JA:"鰻巻",EN:"Eel Roll",KO:"장어 롤",ZH:"鳗鱼卷"},
+    sub:{JA:"鰻ロール",EN:"Eel Sushi Roll",KO:"장어롤",ZH:"鳗鱼寿司卷"}},
+  {id:"F13",cat:"alacarte",emoji:"🍣",price:14,
+    name:{JA:"カリフォルニアロール",EN:"California Roll",KO:"캘리포니아 롤",ZH:"加州卷"},
+    sub:{JA:"カリロール",EN:"California Roll",KO:"캘리포니아롤",ZH:"加州卷"}},
+  {id:"F14",cat:"alacarte",emoji:"🥩",price:10,
+    name:{JA:"生姜焼きセット",EN:"Syogayaki Set",KO:"생강 돼지고기 볶음 정식",ZH:"生姜炒肉套餐"},
+    sub:{JA:"みそ汁付き",EN:"with Miso Soup",KO:"된장국 포함",ZH:"附味噌汤"}},
+  {id:"F15",cat:"alacarte",emoji:"🍤",price:10,
+    name:{JA:"シーフードフライセット",EN:"Deep-Fried Seafood Set",KO:"해물 튀김 정식",ZH:"炸海鲜套餐"},
+    sub:{JA:"みそ汁付き",EN:"with Miso Soup",KO:"된장국 포함",ZH:"附味噌汤"}},
+];
+
+// ===== STATE =====
+let lang='JA', curCat='all', cart={}, detailItem=null, curPage='menu';
+
+function t(k){return(T[lang]&&T[lang][k])||T.EN[k]||k}
+
+function applyLang(){
+  document.getElementById('search-input').placeholder=t('search');
+  document.getElementById('lang-btn-label').textContent='🌐 '+lang;
+  document.querySelectorAll('[data-t]').forEach(el=>{
+    el.textContent=t(el.dataset.t);
+  });
+  document.querySelectorAll('.lang-opt').forEach((b,i)=>{
+    b.classList.toggle('active',['JA','EN','KO','ZH'][i]===lang);
+  });
+  document.getElementById('qr-desc').textContent=t('qrDesc');
+  document.getElementById('qr-url-display').textContent=t('qrScan');
+  updateCartBar();
+  renderMenu();
+  if(detailItem)populateDetail(detailItem);
+  renderCart();
+}
+
+function toggleLang(){document.getElementById('lang-picker').classList.toggle('show')}
+function setLang(l){lang=l;document.getElementById('lang-picker').classList.remove('show');applyLang()}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.lang-wrap'))document.getElementById('lang-picker').classList.remove('show');
+});
+
+function selectCat(cat,btn){
+  curCat=cat;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMenu();
+}
+
+function renderMenu(){
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  const grid=document.getElementById('menu-grid');
+  const items=MENU.filter(m=>{
+    if(curCat!=='all'&&m.cat!==curCat)return false;
+    if(!q)return true;
+    const n=(m.name[lang]||m.name.EN).toLowerCase();
+    const s=(m.sub[lang]||m.sub.EN||'').toLowerCase();
+    return n.includes(q)||s.includes(q)||m.id.toLowerCase().includes(q);
+  });
+  if(!items.length){grid.innerHTML=`<div class="no-result">😢 "${document.getElementById('search-input').value}"<br>${lang==='JA'?'見つかりませんでした':lang==='KO'?'결과 없음':lang==='ZH'?'未找到':'No results'}</div>`;return;}
+  grid.innerHTML=items.map(m=>`
+    <div class="menu-card" onclick="openDetail('${m.id}')">
+      <div class="card-img">${m.emoji}</div>
+      <div class="card-body">
+        <div class="card-code">${m.id}</div>
+        <div class="card-name">${m.name[lang]||m.name.EN}</div>
+        <div class="card-sub">${m.sub[lang]||m.sub.EN||''}</div>
+        <div class="card-bottom">
+          <span class="card-price">$${m.price.toFixed(2)}</span>
+          <button class="add-btn" id="add-${m.id}" onclick="event.stopPropagation();quickAdd('${m.id}')">${t('addCart')}</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function quickAdd(id){
+  addToCart(id);
+  const btn=document.getElementById('add-'+id);
+  if(!btn)return;
+  const orig=btn.textContent;
+  btn.textContent='✓ Added';
+  btn.classList.add('added');
+  setTimeout(()=>{btn.textContent=orig;btn.classList.remove('added');},900);
+}
+
+function addToCart(id){
+  cart[id]=(cart[id]||0)+1;
+  updateCartBar();
+  updateBadge();
+}
+
+function updateCartBar(){
+  const total=Object.values(cart).reduce((a,b)=>a+b,0);
+  const bar=document.getElementById('cart-bar');
+  if(total>0){
+    bar.classList.add('show');
+    document.getElementById('cart-bar-text').textContent=t('cartBarPre')+total+t('cartBarSuf');
+    document.getElementById('cart-bar-btn').textContent=t('viewCart');
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+function updateBadge(){
+  const total=Object.values(cart).reduce((a,b)=>a+b,0);
+  const badge=document.getElementById('cart-badge');
+  if(total>0){badge.style.display='inline';badge.textContent=total;}
+  else{badge.style.display='none';}
+}
+
+function openDetail(id){
+  detailItem=MENU.find(m=>m.id===id);
+  if(!detailItem)return;
+  populateDetail(detailItem);
+  document.getElementById('detail-overlay').classList.add('show');
+}
+function populateDetail(m){
+  document.getElementById('d-title').textContent=m.name[lang]||m.name.EN;
+  document.getElementById('d-emoji').textContent=m.emoji;
+  document.getElementById('d-sub').textContent=m.sub[lang]||m.sub.EN||'';
+  document.getElementById('d-desc').textContent=(m.name[lang]||m.name.EN)+' — '+
+    (m.sub[lang]||m.sub.EN||'')+(m.cat==='japanese'?'\n🇯🇵 Japanese':m.cat==='korean'?'\n🇰🇷 Korean':m.cat==='western'?'\n🍴 Western':m.cat==='khmer'?'\n🇰🇭 Khmer':'\n🍽 Dessert/À la Carte');
+  document.getElementById('d-price').textContent='$'+m.price.toFixed(2);
+  document.getElementById('d-add-btn').textContent=t('addCart');
+}
+function addFromDetail(){
+  if(detailItem){addToCart(detailItem.id);closeOverlay('detail-overlay');}
+}
+
+function openCart(){
+  renderCart();
+  document.getElementById('cart-overlay').classList.add('show');
+}
+function renderCart(){
+  document.getElementById('cart-title-label').textContent=t('cartTitle');
+  document.getElementById('order-btn').textContent=t('order');
+  const el=document.getElementById('cart-items-list');
+  const keys=Object.keys(cart).filter(k=>cart[k]>0);
+  if(!keys.length){
+    el.innerHTML=`<div class="empty-cart">${t('cartEmpty')}</div>`;
+    document.getElementById('order-btn').style.display='none';
+    return;
+  }
+  document.getElementById('order-btn').style.display='block';
+  let total=0;
+  let html=keys.map(id=>{
+    const m=MENU.find(x=>x.id===id);if(!m)return'';
+    const sub=m.price*cart[id];total+=sub;
+    return `<div class="cart-item">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${m.name[lang]||m.name.EN}</div>
+        <div class="cart-item-price">$${m.price.toFixed(2)} × ${cart[id]} = $${sub.toFixed(2)}</div>
+      </div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="chgQty('${id}',-1)">−</button>
+        <span class="qty-num">${cart[id]}</span>
+        <button class="qty-btn" onclick="chgQty('${id}',1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  html+=`<div class="cart-total-row"><span>${t('total')}</span><span>$${total.toFixed(2)}</span></div>`;
+  el.innerHTML=html;
+}
+function chgQty(id,d){
+  cart[id]=(cart[id]||0)+d;
+  if(cart[id]<=0)delete cart[id];
+  updateCartBar();updateBadge();renderCart();
+}
+function placeOrder(){
+  if(!Object.keys(cart).filter(k=>cart[k]>0).length)return;
+  closeOverlay('cart-overlay');
+  document.getElementById('conf-title').textContent=t('orderOk');
+  document.getElementById('conf-msg').textContent=t('orderMsg');
+  document.getElementById('conf-close').textContent=t('close');
+  document.getElementById('confirm-overlay').classList.add('show');
+  cart={};updateCartBar();updateBadge();
+}
+function closeConfirm(){document.getElementById('confirm-overlay').classList.remove('show');}
+
+function overlayClose(e,id){if(e.target===document.getElementById(id))closeOverlay(id);}
+function closeOverlay(id){document.getElementById(id).classList.remove('show');}
+
+function showPage(p){
+  curPage=p;
+  document.getElementById('page-menu').style.display=p==='menu'?'block':'none';
+  document.getElementById('page-qr').style.display=p==='qr'?'block':'none';
+  document.getElementById('nav-menu').classList.toggle('active',p==='menu');
+  document.getElementById('nav-qr').classList.toggle('active',p==='qr');
+  document.getElementById('nav-cart-btn').classList.toggle('active',false);
+}
+
+// QR code generator
+function drawQR(canvas,url){
+  const ctx=canvas.getContext('2d');
+  const sz=canvas.width;
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,sz,sz);
+  const n=25,mod=Math.floor(sz/n);
+  const m=Array.from({length:n},()=>new Array(n).fill(0));
+  function finder(r,c){
+    for(let i=0;i<7;i++)for(let j=0;j<7;j++)
+      m[r+i][c+j]=(i===0||i===6||j===0||j===6||(i>=2&&i<=4&&j>=2&&j<=4))?1:0;
+  }
+  finder(0,0);finder(0,n-7);finder(n-7,0);
+  for(let i=0;i<8;i++){m[7][i]=m[i][7]=m[7][n-1-i]=m[i][n-8]=m[n-8][i]=m[n-1-i][7]=0;}
+  for(let i=8;i<n-8;i++){m[6][i]=m[i][6]=i%2===0?1:0;}
+  m[n-8][8]=1;
+  let h=5381;for(let i=0;i<url.length;i++)h=(h*33^url.charCodeAt(i))>>>0;
+  const dp=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    if(m[r][c]===0&&!(r<9&&c<9)&&!(r<9&&c>n-9)&&!(r>n-9&&c<9)&&r!==6&&c!==6)dp.push([r,c]);
+  }
+  for(let i=0;i<dp.length;i++){
+    const[r,c]=dp[i];m[r][c]=(h>>>(i%31)&1)^(i%7<3?1:0);
+  }
+  ctx.fillStyle='#1a2a4a';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(m[r][c])ctx.fillRect(c*mod,r*mod,mod,mod);}
+}
+
+// Init
+applyLang();
+const pageURL=window.location.href;
+document.getElementById('qr-url-display').textContent='📱 '+pageURL;
+drawQR(document.getElementById('qr-canvas'),pageURL);
+</script>
+</body>
+</html>
